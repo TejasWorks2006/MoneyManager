@@ -48,7 +48,7 @@ public class TransactionServiceTest {
         TransactionService transactionService = new TransactionService(transactionRepository);
 
         assertThrows(TransactionService.InvalidTransaction.class, ()-> {
-            transactionService.addTransaction(0.00, null, "Null Category Test");
+            transactionService.addTransaction(150.00, null, "Null Category Test");
         },"An invalid category should return an error.");
     }
 
