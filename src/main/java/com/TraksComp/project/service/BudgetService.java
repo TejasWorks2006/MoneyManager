@@ -3,17 +3,19 @@ package com.TraksComp.project.service;
 import com.TraksComp.project.model.Budget;
 import com.TraksComp.project.model.Category;
 import com.TraksComp.project.model.Transactions;
+import com.TraksComp.project.repository.BudgetRepository;
 import com.TraksComp.project.repository.TransactionRepository;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BudgetService {
-    private Map<Category, Budget> Budgets = new HashMap<>();
+    private final BudgetRepository budgetRepository;
     private final TransactionRepository transactionRepository;
 
-    public BudgetService(TransactionRepository transactionRepository) {
+    public BudgetService(TransactionRepository transactionRepository, BudgetRepository budgetRepository) {
         this.transactionRepository = transactionRepository;
+        this.budgetRepository = budgetRepository;
     }
 
     public void setBudgetLimit(Category category, double limit){
@@ -21,16 +23,18 @@ public class BudgetService {
             throw new IllegalArgumentException("Budget limit cannot be negative.");
         }
         Budget budget = new Budget(category, limit);
-        Budgets.put(category, budget);
+        budgetRepository.save(budget);
     }
     public boolean isOverBudget(Category category){
-        if(!Budgets.containsKey(category)) {
+        Budget currBudget = budgetRepository.findByCategory(category);
+
+        if(currBudget == null) {
             return false;
         }
 
-        Budget currBudget = Budgets.get(category);
         double currLimit = currBudget.getMax_spending();
         double currSpent = 0;
+
         for(Transactions t: transactionRepository.findALL()){
             if(t.getCategory() == category){
                 currSpent += t.getAmount();

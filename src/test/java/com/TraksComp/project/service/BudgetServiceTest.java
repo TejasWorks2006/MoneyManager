@@ -1,6 +1,7 @@
 package com.TraksComp.project.service;
 
 import com.TraksComp.project.model.Category;
+import com.TraksComp.project.repository.BudgetRepository;
 import com.TraksComp.project.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,8 +12,9 @@ public class BudgetServiceTest {
     void testIsOverBudgetReturnsTrueWhenLimitExceeded(){
         // 1. Setup
         TransactionRepository transactionRepository = new TransactionRepository();
+        BudgetRepository budgetRepository = new BudgetRepository();
         TransactionService transactionService = new TransactionService(transactionRepository);
-        BudgetService budgetService = new BudgetService(transactionRepository);
+        BudgetService budgetService = new BudgetService(transactionRepository, budgetRepository);
 
         // 2. Entering data
         budgetService.setBudgetLimit(Category.FOOD, 100.0);
@@ -27,7 +29,8 @@ public class BudgetServiceTest {
     void testNegativeBudgetLimitThrowsException(){
         // 1. Setup
         TransactionRepository transactionRepository = new TransactionRepository();
-        BudgetService budgetService = new BudgetService(transactionRepository);
+        BudgetRepository budgetRepository = new BudgetRepository();
+        BudgetService budgetService = new BudgetService(transactionRepository, budgetRepository);
 
         // 2. Verifying
         assertThrows(IllegalArgumentException.class, ()-> {
@@ -39,8 +42,9 @@ public class BudgetServiceTest {
     void testIsOverBudgetReturnsFalseWhenWithinLimit(){
         // 1. Setup
         TransactionRepository transactionRepository = new TransactionRepository();
+        BudgetRepository budgetRepository = new BudgetRepository();
         TransactionService transactionService = new TransactionService(transactionRepository);
-        BudgetService budgetService = new BudgetService(transactionRepository);
+        BudgetService budgetService = new BudgetService(transactionRepository, budgetRepository);
 
         // 2. Entering data
         budgetService.setBudgetLimit(Category.FOOD, 500.0);
@@ -55,8 +59,9 @@ public class BudgetServiceTest {
     void testIsOverBudgetReturnsFalseWhenZero(){
         // 1. Setup
         TransactionRepository transactionRepository = new TransactionRepository();
+        BudgetRepository budgetRepository = new BudgetRepository();
         TransactionService transactionService = new TransactionService(transactionRepository);
-        BudgetService budgetService = new BudgetService(transactionRepository);
+        BudgetService budgetService = new BudgetService(transactionRepository, budgetRepository);
 
         // 2. Entering data
         budgetService.setBudgetLimit(Category.FOOD, 500.0);
@@ -65,5 +70,19 @@ public class BudgetServiceTest {
         // 3. Verifying
         boolean isOver = budgetService.isOverBudget(Category.FOOD);
         assertFalse(isOver, "FOOD expense is equal to budget.");
+    }
+
+    @Test
+    void testIsOverBudgetReturnsFalseForUnconfiguredCategory() {
+        // 1. Setup
+        TransactionRepository transactionRepository = new TransactionRepository();
+        BudgetRepository budgetRepository = new BudgetRepository();
+        BudgetService budgetService = new BudgetService(transactionRepository, budgetRepository);
+
+        // 2. Action (Explicitly NOT setting a budget limit for TRANSPORTATION)
+        boolean isOver = budgetService.isOverBudget(Category.TRANSPORTATION);
+
+        // 3. Verifying
+        assertFalse(isOver, "An unconfigured budget category should safely return false.");
     }
 }
